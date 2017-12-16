@@ -8,7 +8,18 @@ jdk:
   - oraclejdk8
 
 script:
-  - sbt clean coverage test coverageReport
+  - sbt clean headerCheck coverage test coverageReport
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)
+
+before_cache:
+  - find $HOME/.sbt -name "*.lock" -type f -delete
+  - find $HOME/.ivy2/cache -name "ivydata-*.properties" -type f -delete
+
+cache:
+  directories:
+  - $HOME/.m2
+  - $HOME/.ivy2/cache
+  - $HOME/.sbt
+  - $HOME/.coursier
