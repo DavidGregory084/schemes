@@ -19,13 +19,13 @@ package schemes
 trait FixModule {
   type Fix[F[_]]
 
-  def fix[F[_]](f: F[schemes.Fix[F]]): Fix[F]
+  def apply[F[_]](f: F[schemes.Fix[F]]): Fix[F]
   def unfix[F[_]](f: Fix[F]): F[schemes.Fix[F]]
 }
 
 private[schemes] object FixImpl extends FixModule {
   type Fix[F[_]] = F[schemes.Fix[F]]
 
-  def fix[F[_]](f: F[schemes.Fix[F]]): Fix[F] = f
+  def apply[F[_]](f: F[schemes.Fix[F]]): Fix[F] = f
   def unfix[F[_]](f: Fix[F]): F[schemes.Fix[F]] = f
 }

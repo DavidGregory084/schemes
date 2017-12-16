@@ -15,14 +15,27 @@
  */
 
 package schemes
+package data
 
 import cats._
 
-sealed trait ListF[A, B]
-case class ConsF[A, B](head: A, tail: B) extends ListF[A, B]
-case class NilF[A, B]() extends ListF[A, B]
+sealed abstract class ListF[A, B]
+final case class ConsF[A, B](head: A, tail: B) extends ListF[A, B]
+final case class NilF[A, B]() extends ListF[A, B]
 
 object ListF {
+  def apply[A](as: A*): Fix[ListF[A, ?]] =
+    Schemes.ana[ListF[A, ?], List[A]](as.toList) {
+      case Nil => NilF()
+      case h :: t => ConsF(h, t)
+    }
+
+  def toList[A](list: Fix[ListF[A, ?]]) =
+    Schemes.cata[ListF[A, ?], List[A]](list) {
+      case NilF() => Nil
+      case ConsF(h, t) => h :: t
+    }
+
   implicit def schemesListFFunctor[A]: Functor[ListF[A, ?]] = new Functor[ListF[A, ?]] {
     def map[B, C](fa: ListF[A, B])(f: B => C): ListF[A, C] = fa match {
       case ConsF(head, tail) => ConsF(head, f(tail))

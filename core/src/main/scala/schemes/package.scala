@@ -17,4 +17,8 @@
 package object schemes {
   val Fix: FixModule = FixImpl
   type Fix[F[_]] = Fix.Fix[F]
+
+  implicit class FixOps[F[_]](private val fix: Fix[F]) extends AnyVal {
+    def unfix: F[Fix[F]] = Fix.unfix(fix)
+  }
 }
