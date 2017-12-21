@@ -16,7 +16,8 @@
 
 package schemes
 
-import cats.{ Functor, Monad, Traverse, ~> }
+import cats.{ Eval, Functor, Monad, Traverse, ~> }
+import cats.free.Cofree
 
 object Schemes {
   def cata[F[_], A](fix: Fix[F])(algebra: F[A] => A)(implicit F: Functor[F]): A = {
@@ -124,7 +125,7 @@ object Schemes {
       // Unfold each inner seed A into a subsequent new layer of F recursively
       val allLayers = F.map(outerLayer) { aa =>
         ana[F, Fix[F]](loop(aa)) { fixf =>
-          // Apply the transformation to each newly unfolded layer
+          // Apply the transformation to each newly unfolded layer after receiving the results of the recursive call
           post(Fix.unfix(fixf))
         }
       }
@@ -133,5 +134,101 @@ object Schemes {
     }
 
     loop(a)
+  }
+
+  def elgot[F[_], A, B](a: A)(elgotCoalgebra: A => Either[B, F[A]], algebra: F[B] => B)(implicit F: Functor[F]): B = {
+    def loop(a: A): B = {
+      // Unfold a layer of F using the seed
+      elgotCoalgebra(a) match {
+        // Each unfolding can either continue the computation or complete it with B
+        case Right(fa) =>
+          // If Right, continue the refold to at least the next layer
+          val allLayers = F.map(fa)(loop)
+          // Finally apply the algebra to tear down this layer
+          algebra(allLayers)
+        case Left(b) =>
+          // If Left, short-circuit by returning a B to complete the refold early
+          b
+      }
+    }
+
+    loop(a)
+  }
+
+  def coelgot[F[_], A, B](a: A)(coalgebra: A => F[A], elgotAlgebra: (A, () => F[B]) => B)(implicit F: Functor[F]): B = {
+    def loop(a: A): B = {
+      // Construct a function which continues the computation
+      val continue = () => {
+        // Unfold the current seed into a layer of F containing the next seed using the coalgebra
+        val currentLayer = coalgebra(a)
+        // Recursively unfold down to the deepest leaves and then fold back up again
+        F.map(currentLayer)(loop)
+      }
+
+      // Pass the current seed and the continuation to an algebra which decides whether to continue
+      elgotAlgebra(a, continue)
+    }
+
+    loop(a)
+  }
+
+  def para[F[_], A](fix: Fix[F])(algebra: F[(Fix[F], A)] => A)(implicit F: Functor[F]): A = {
+    def loop(fix: Fix[F]): A = {
+      // Peel off a layer of Fix to get to the F inside
+      val peeled = fix.unfix
+      // Apply the algebra to all the layers beneath this one, passing along the current subtree
+      val prepared = F.map(peeled)(f => (f, loop(f)))
+      // Finally apply the algebra to this layer
+      algebra(prepared)
+    }
+
+    loop(fix)
+  }
+
+  def apo[F[_], A](a: A)(coalgebra: A => F[Either[Fix[F], A]])(implicit F: Functor[F]): Fix[F] = {
+    def continue(choice: Either[Fix[F], A]): Fix[F] = choice match {
+      // If Right, continue unfolding the structure
+      case Right(a) => loop(a)
+      // If Left, complete with the current structure
+      case Left(fix) => fix
+    }
+
+    def loop(a: A): Fix[F] = {
+      // Unfold the current seed into a layer of F containing the next seed using the coalgebra
+      val currentLayer = coalgebra(a)
+      // Unfold each inner seed A into a subsequent new layer of F recursively
+      val allLayers = F.map(currentLayer)(continue)
+      // Finish off this layer with a topping of Fix
+      Fix[F](allLayers)
+    }
+
+    loop(a)
+  }
+
+  def histo[F[_], A](fix: Fix[F])(algebra: F[Cofree[F, A]] => A)(implicit F: Functor[F]): A = {
+    def continue(fix: Fix[F]): F[Cofree[F, A]] = {
+      // Peel off a layer of Fix to get to the F inside
+      val peeled = fix.unfix
+      // Annotate the contents
+      F.map(peeled)(annotate)
+    }
+
+    def annotate(fix: Fix[F]): Cofree[F, A] = {
+      // Get the folded value for this layer
+      val head = loop(fix)
+      // Apply the algebra to all the layers beneath this one
+      val tail = Eval.later(continue(fix))
+      // Return the subtree annotated with the folded value
+      Cofree(head, tail)
+    }
+
+    def loop(fix: Fix[F]): A = {
+      // Start the fold from the current layer
+      val annotated = continue(fix)
+      // Apply the algebra to this layer
+      algebra(annotated)
+    }
+
+    loop(fix)
   }
 }

@@ -25,8 +25,9 @@ lazy val commonSettings = Def.settings(
   releaseCrossBuild := true,
 
   libraryDependencies ++= Seq(
-    "org.typelevel" %% "cats-core" % "1.0.0-RC1",
-    "org.typelevel" %% "cats-testkit" % "1.0.0-RC1" % Test
+    "org.typelevel" %% "cats-core" % "1.0.0-RC2",
+    "org.typelevel" %% "cats-free" % "1.0.0-RC2",
+    "org.typelevel" %% "cats-testkit" % "1.0.0-RC2" % Test
   ),
 
   libraryDependencies ++= {
@@ -42,7 +43,7 @@ lazy val commonSettings = Def.settings(
     headerCreate.in(Compile).triggeredBy(compile.in(Compile)).value
   },
 
-  addCompilerPlugin("org.spire-math" % "kind-projector" % "0.9.4" cross CrossVersion.binary),
+  addCompilerPlugin("org.spire-math" % "kind-projector" % "0.9.5" cross CrossVersion.binary),
 
   headerLicense := Some(HeaderLicense.ALv2("2017", "David Gregory and the Schemes project contributors")),
 
