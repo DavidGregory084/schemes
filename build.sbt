@@ -1,13 +1,15 @@
 import scala.xml.{ Elem, Node, NodeSeq }
 import scala.xml.transform.{ RewriteRule, RuleTransformer }
 
+enablePlugins(ScalaJSPlugin)
+
 lazy val schemes = project.in(file("."))
   .settings(commonSettings)
   .settings(publishSettings)
   .settings(noPublishSettings)
-  .aggregate(core)
+  .aggregate(coreJS, coreJVM)
 
-lazy val core = project.in(file("core"))
+lazy val core = crossProject.in(file("core"))
   .enablePlugins(TutPlugin)
   .settings(commonSettings)
   .settings(publishSettings)
@@ -16,6 +18,9 @@ lazy val core = project.in(file("core"))
     scalacOptions.in(Tut) ~= filterConsoleScalacOptions,
     tutTargetDirectory := file(".")
   )
+
+lazy val coreJS = core.js
+lazy val coreJVM = core.jvm
 
 lazy val commonSettings = Def.settings(
   organization := "io.github.davidgregory084",

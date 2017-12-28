@@ -21,3 +21,5 @@ addSbtPlugin("com.47deg"  % "sbt-microsites" % "0.7.13")
 addSbtPlugin("com.eed3si9n" % "sbt-unidoc" % "0.4.1")
 
 addSbtPlugin("io.github.davidgregory084" % "sbt-tpolecat" % "0.1.3")
+
+addSbtPlugin("org.scala-js" % "sbt-scalajs" % "0.6.21")
