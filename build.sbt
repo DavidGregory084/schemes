@@ -30,9 +30,9 @@ lazy val commonSettings = Def.settings(
   releaseCrossBuild := true,
 
   libraryDependencies ++= Seq(
-    "org.typelevel" %% "cats-core" % "1.0.0-RC2",
-    "org.typelevel" %% "cats-free" % "1.0.0-RC2",
-    "org.typelevel" %% "cats-testkit" % "1.0.0-RC2" % Test
+    "org.typelevel" %% "cats-core" % "1.0.1",
+    "org.typelevel" %% "cats-free" % "1.0.1",
+    "org.typelevel" %% "cats-testkit" % "1.0.1" % Test
   ),
 
   libraryDependencies ++= {
