@@ -7,7 +7,7 @@ lazy val schemes = project.in(file("."))
   .settings(commonSettings)
   .settings(publishSettings)
   .settings(noPublishSettings)
-  .aggregate(coreJS, coreJVM)
+  .aggregate(coreJS, coreJVM, docs)
 
 lazy val core = crossProject.in(file("core"))
   .enablePlugins(TutPlugin)
@@ -22,6 +22,51 @@ lazy val core = crossProject.in(file("core"))
 lazy val coreJS = core.js
 lazy val coreJVM = core.jvm
 
+lazy val docs = project.in(file("docs"))
+  .enablePlugins(MicrositesPlugin)
+  .enablePlugins(ScalaUnidocPlugin)
+  .settings(commonSettings)
+  .settings(publishSettings)
+  .settings(noPublishSettings)
+  .settings(
+    moduleName := "schemes-docs",
+
+    ghpagesNoJekyll := false,
+    git.remoteRepo := "git@github.com:DavidGregory084/schemes.git",
+    addMappingsToSiteDir(mappings.in(ScalaUnidoc, packageDoc), micrositeDocumentationUrl),
+
+    scalacOptions.in(Tut) ~= filterConsoleScalacOptions,
+
+    scalacOptions in (ScalaUnidoc, unidoc) ++= Seq(
+      "-groups",
+      "-implicits",
+      "-sourcepath", baseDirectory.in(LocalRootProject).value.getAbsolutePath,
+      "-doc-source-url", scmInfo.value.get.browseUrl + "/tree/master€{FILE_PATH}.scala",
+      "-doc-root-content", (resourceDirectory.in(Compile).value / "rootdoc.txt").getAbsolutePath
+    ),
+
+    unidocProjectFilter.in(ScalaUnidoc, unidoc) := inAnyProject -- inProjects(coreJS),
+
+    micrositeName := "schemes",
+    micrositeDescription := "A recursion schemes micro-library",
+    micrositeAuthor := "David Gregory",
+    micrositeHomepage := "https://DavidGregory084.github.io/schemes",
+    micrositeBaseUrl := "/schemes",
+    micrositeDocumentationUrl := "api",
+    micrositeGithubOwner := "DavidGregory084",
+    micrositeGithubRepo := "schemes",
+    micrositeExtraMdFiles := Map(file("README.md") -> microsites.ExtraMdFileConfig("index.md", "home")),
+    micrositePalette := Map(
+      "brand-primary"     -> "#424242",
+      "brand-secondary"   -> "#7A7A7A",
+      "brand-tertiary"    -> "#3F3F3F",
+      "gray-dark"         -> "#453E46",
+      "gray"              -> "#837F84",
+      "gray-light"        -> "#E3E2E3",
+      "gray-lighter"      -> "#F4F3F4",
+      "white-color"       -> "#FFFFFF"),
+    includeFilter in makeSite := "*.html" | "*.css" | "*.png" | "*.jpg" | "*.gif" | "*.js" | "*.swf" | "*.yml" | "*.md"
+  )
 lazy val commonSettings = Def.settings(
   organization := "io.github.davidgregory084",
 

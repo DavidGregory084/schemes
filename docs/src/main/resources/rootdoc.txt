@@ -1,0 +1,3 @@
+This is the API documentation for [[https://davidgregory084.github.io/schemes/ schemes]], a Scala library which provides utilities for working with recursion schemes.
+
+Please refer to the [[https://davidgregory084.github.io/schemes/ documentation]] for further explanation and usage examples.
