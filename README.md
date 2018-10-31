@@ -16,8 +16,8 @@ The original library was introduced by a [blog post](https://japgolly.blogspot.c
 Add the following to your `build.sbt`:
 
 ```scala
-// For cats 1.0.0-RC1
-libraryDependencies += "io.github.davidgregory084" %% "schemes-core" % "0.1.0"
+// For cats 1.x
+libraryDependencies += "io.github.davidgregory084" %% "schemes-core" % "0.2.0"
 ```
 
 ### Examples

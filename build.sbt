@@ -1,3 +1,4 @@
+import sbtcrossproject.CrossPlugin.autoImport.{crossProject, CrossType}
 import scala.xml.{ Elem, Node, NodeSeq }
 import scala.xml.transform.{ RewriteRule, RuleTransformer }
 
@@ -9,7 +10,8 @@ lazy val schemes = project.in(file("."))
   .settings(noPublishSettings)
   .aggregate(coreJS, coreJVM, docs)
 
-lazy val core = crossProject.in(file("core"))
+lazy val core = crossProject(JSPlatform, JVMPlatform)
+  .in(file("core"))
   .enablePlugins(TutPlugin)
   .settings(commonSettings)
   .settings(publishSettings)
@@ -93,9 +95,9 @@ lazy val commonSettings = Def.settings(
     headerCreate.in(Compile).triggeredBy(compile.in(Compile)).value
   },
 
-  addCompilerPlugin("org.spire-math" % "kind-projector" % "0.9.5" cross CrossVersion.binary),
+  addCompilerPlugin("org.spire-math" % "kind-projector" % "0.9.8" cross CrossVersion.binary),
 
-  headerLicense := Some(HeaderLicense.ALv2("2017", "David Gregory and the Schemes project contributors")),
+  headerLicense := Some(HeaderLicense.ALv2("2018", "David Gregory and the Schemes project contributors")),
 
   unmanagedSources.in(Compile, headerCreate) ++= (sourceDirectory.in(Compile).value / "boilerplate" ** "*.template").get,
 
