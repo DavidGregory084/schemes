@@ -30,13 +30,13 @@ object ListF {
   def nil[A]: Fix[ListF[A, ?]] =
     Fix(NilF())
 
-  def apply[A](as: A*): Fix[ListF[A, ?]] =
+  def apply[A](as: A*): Eval[Fix[ListF[A, ?]]] =
     Schemes.ana[ListF[A, ?], List[A]](as.toList) {
       case Nil => NilF()
       case h :: t => ConsF(h, t)
     }
 
-  def toList[A](list: Fix[ListF[A, ?]]): List[A] =
+  def toList[A](list: Fix[ListF[A, ?]]): Eval[List[A]] =
     Schemes.cata[ListF[A, ?], List[A]](list) {
       case NilF() => Nil
       case ConsF(h, t) => h :: t

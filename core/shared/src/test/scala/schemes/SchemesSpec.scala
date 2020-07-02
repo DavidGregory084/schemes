@@ -1,6 +1,7 @@
 package schemes
 
-import org.scalatest._
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.flatspec.AnyFlatSpec
 
 import cats._
 import schemes.data._
@@ -50,7 +51,7 @@ object MathExpr {
   }
 }
 
-class SchemesSpec extends FlatSpec with Matchers {
+class SchemesSpec extends AnyFlatSpec with Matchers {
   "unfix" should "unwrap a single layer of Fix" in {
     import MathExpr._
     add(num(1), num(1)).unfix shouldBe Add[Fix[MathExpr]](num(1), num(1))
@@ -60,13 +61,13 @@ class SchemesSpec extends FlatSpec with Matchers {
     import MathExpr._
 
     val two = add(num(1), num(1))
-    two.cata(evalAlgebra) shouldBe 2
+    two.cata(evalAlgebra).value shouldBe 2
 
     val four = mul(num(2), num(2))
-    four.cata(evalAlgebra) shouldBe 4
+    four.cata(evalAlgebra).value shouldBe 4
 
     val sixteen = add(num(2), add(num(3), num(11)))
-    sixteen.cata(evalAlgebra) shouldBe 16
+    sixteen.cata(evalAlgebra).value shouldBe 16
 
     two.cataM[Id, Int](evalAlgebra) shouldBe 2
   }
@@ -79,7 +80,7 @@ class SchemesSpec extends FlatSpec with Matchers {
         Num(i)
       else
         Add(1, i - 1)
-    }
+    }.value
 
     val unfoldAddM = 5.anaM[Id, MathExpr] { i =>
       if (i < 2)
@@ -98,7 +99,7 @@ class SchemesSpec extends FlatSpec with Matchers {
 
     5.hylo[MathExpr, Int](
       i => if (i < 2) Num(i) else Add(1, i - 1),
-      evalAlgebra) shouldBe 5
+      evalAlgebra).value shouldBe 5
 
     5.hyloM[Id, MathExpr, Int](
       i => if (i < 2) Num(i) else Add(1, i - 1),
@@ -116,11 +117,24 @@ class SchemesSpec extends FlatSpec with Matchers {
       case other => other
     }
 
-    val `1 to 10` = ListF(1 to 10: _*)
+    val `1 to 10` = ListF(1 to 10: _*).value
 
-    `1 to 10`.prepro[Int](
-      stopAtFive,
-      sum) shouldBe 15
+    `1 to 10`.prepro[Int](stopAtFive)(sum).value shouldBe 15
+  }
+
+  it should "be stack-safe" in {
+    val stopAtMillion = Lambda[ListF[Int, ?] ~> ListF[Int, ?]] {
+      case ConsF(n, _) if n > 1000000 => NilF()
+      case other => other
+    }
+
+    val lots = (1 to 2000000).toList
+    val lotsF = ListF(lots: _*).value
+
+    lotsF.prepro[List[Int]](stopAtMillion) {
+      case NilF() => Nil
+      case ConsF(h, t) => h :: t
+    }.value.length shouldBe 1000000
   }
 
   "postpro" should "apply a transformation at each layer after unfolding some structure" in {
@@ -129,10 +143,28 @@ class SchemesSpec extends FlatSpec with Matchers {
       case other => other
     }
 
-    val `1 to 5` = ListF(1 to 5: _*)
+    val `1 to 5` = ListF(1 to 5: _*).value
 
-    1.postpro[ListF[Int, ?]](
-      i => if (i > 100) NilF() else ConsF(i, i + 1),
-      stopAtFive) shouldBe `1 to 5`
+    1.postpro[ListF[Int, ?]](stopAtFive) { i =>
+      if (i > 100) NilF() else ConsF(i, i + 1)
+    }.value shouldBe `1 to 5`
+  }
+
+  it should "be stack-safe" in {
+    val stopAtMillion = Lambda[ListF[Int, ?] ~> ListF[Int, ?]] {
+      case ConsF(n, _) if n > 1000000 => NilF()
+      case other => other
+    }
+
+    val length = (list: Fix[ListF[Int, ?]]) => Schemes.cata[ListF[Int, ?], Long](list) {
+      case ConsF(_, tail) => 1L + tail
+      case NilF() => 0L
+    }
+
+    val unfolded = 1.postpro[ListF[Int, ?]](stopAtMillion) { i =>
+      if (i > 2000000) NilF() else ConsF(i, i + 1)
+    }.value
+
+    length(unfolded).value shouldBe 1000000
   }
 }

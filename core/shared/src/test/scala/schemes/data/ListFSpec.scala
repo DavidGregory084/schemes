@@ -18,13 +18,21 @@ class ListFSpec extends CatsSuite {
   checkAll("ListF[Int, Int]", TraverseTests[ListF[Int, ?]].traverse[Int, Int, Int, Set[Int], Option, Option])
 
   val list = List(1, 2, 3, 4, 5)
-  val listF = ListF(1 to 5: _*)
+  val listF = ListF(1 to 5: _*).value
 
   test("ListF.apply") {
     listF shouldBe ListF.cons(1, ListF.cons(2, ListF.cons(3, ListF.cons(4, ListF.cons(5, ListF.nil[Int])))))
   }
 
   test("ListF.toList") {
-    ListF.toList(listF) shouldBe list
+    ListF.toList(listF).value shouldBe list
+  }
+
+  test("ListF.apply is stack-safe") {
+    ListF(1 to 1000000: _*).value
+  }
+
+  test("ListF.toList is stack-safe") {
+    ListF.toList(ListF(1 to 1000000: _*).value).value
   }
 }

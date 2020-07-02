@@ -1,18 +1,15 @@
 language: scala
 
 scala:
-  - 2.11.12
-  - 2.12.7
+  - 2.12.11
+  - 2.13.2
 
 jdk:
-  - oraclejdk8
+  - openjdk8
   - openjdk11
 
 script:
-  - sbt clean headerCheck coverage test coverageReport
-
-after_success:
-  - bash <(curl -s https://codecov.io/bash)
+  - sbt clean headerCheck test
 
 before_cache:
   - find $HOME/.sbt -name "*.lock" -type f -delete
