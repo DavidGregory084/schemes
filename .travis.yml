@@ -9,10 +9,7 @@ jdk:
   - openjdk11
 
 script:
-  - sbt clean headerCheck coverage test coverageReport
-
-after_success:
-  - bash <(curl -s https://codecov.io/bash)
+  - sbt clean headerCheck test
 
 before_cache:
   - find $HOME/.sbt -name "*.lock" -type f -delete

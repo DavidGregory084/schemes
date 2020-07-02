@@ -6,8 +6,6 @@ addSbtPlugin("org.xerial.sbt" % "sbt-sonatype" % "2.0")
 
 addSbtPlugin("org.tpolecat" % "tut-plugin" % "0.6.13")
 
-addSbtPlugin("org.scoverage" % "sbt-scoverage" % "1.5.1")
-
 addSbtPlugin("org.scalariform" % "sbt-scalariform" % "1.8.2")
 
 addSbtPlugin("com.dwijnand" % "sbt-travisci" % "1.2.0")

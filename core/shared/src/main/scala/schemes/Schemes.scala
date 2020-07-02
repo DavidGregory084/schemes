@@ -118,11 +118,11 @@ object Schemes {
   def postpro[F[_], A](a: A)(post: F ~> F)(coalgebra: A => F[A])(implicit T: Traverse[F]): Eval[Fix[F]] = {
     def loop(a: A): Eval[Fix[F]] = Eval.defer {
       // Unfold the current seed into a layer of F containing the next seed using the coalgebra
-      val outerLayer = post(coalgebra(a))
+      val outerLayer = coalgebra(a)
       // Unfold each inner seed A into a subsequent new layer of F recursively
       val allLayers = T.traverse(outerLayer)(loop)
       // Finish off this layer with a topping of Fix
-      allLayers.map(Fix(_))
+      allLayers.map(f => Fix(post(f)))
     }
 
     loop(a)

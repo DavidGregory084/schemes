@@ -156,8 +156,15 @@ class SchemesSpec extends AnyFlatSpec with Matchers {
       case other => other
     }
 
-    1.postpro[ListF[Int, ?]](stopAtMillion) { i =>
+    val length = (list: Fix[ListF[Int, ?]]) => Schemes.cata[ListF[Int, ?], Long](list) {
+      case ConsF(_, tail) => 1L + tail
+      case NilF() => 0L
+    }
+
+    val unfolded = 1.postpro[ListF[Int, ?]](stopAtMillion) { i =>
       if (i > 2000000) NilF() else ConsF(i, i + 1)
-    }.value.length.value shouldBe 1000000
+    }.value
+
+    length(unfolded).value shouldBe 1000000
   }
 }

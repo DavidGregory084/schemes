@@ -42,13 +42,6 @@ object ListF {
       case ConsF(h, t) => h :: t
     }
 
-  implicit class SchemesListFOps[A](list: Fix[ListF[A, ?]]) {
-    def length: Eval[Long] = Schemes.cata[ListF[A, ?], Long](list) {
-      case ConsF(_, tail) => tail + 1L
-      case NilF() => 0L
-    }
-  }
-
   implicit def schemesListFEq[A, B](implicit A: Eq[A], B: Eq[B]) = new Eq[ListF[A, B]] {
     def eqv(l: ListF[A, B], r: ListF[A, B]) = (l, r) match {
       case (NilF(), NilF()) => true
