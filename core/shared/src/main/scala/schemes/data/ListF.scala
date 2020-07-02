@@ -30,17 +30,24 @@ object ListF {
   def nil[A]: Fix[ListF[A, ?]] =
     Fix(NilF())
 
-  def apply[A](as: A*): Fix[ListF[A, ?]] =
+  def apply[A](as: A*): Eval[Fix[ListF[A, ?]]] =
     Schemes.ana[ListF[A, ?], List[A]](as.toList) {
       case Nil => NilF()
       case h :: t => ConsF(h, t)
     }
 
-  def toList[A](list: Fix[ListF[A, ?]]): List[A] =
+  def toList[A](list: Fix[ListF[A, ?]]): Eval[List[A]] =
     Schemes.cata[ListF[A, ?], List[A]](list) {
       case NilF() => Nil
       case ConsF(h, t) => h :: t
     }
+
+  implicit class SchemesListFOps[A](list: Fix[ListF[A, ?]]) {
+    def length: Eval[Long] = Schemes.cata[ListF[A, ?], Long](list) {
+      case ConsF(_, tail) => tail + 1L
+      case NilF() => 0L
+    }
+  }
 
   implicit def schemesListFEq[A, B](implicit A: Eq[A], B: Eq[B]) = new Eq[ListF[A, B]] {
     def eqv(l: ListF[A, B], r: ListF[A, B]) = (l, r) match {

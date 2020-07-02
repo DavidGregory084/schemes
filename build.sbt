@@ -77,9 +77,10 @@ lazy val commonSettings = Def.settings(
   releaseCrossBuild := true,
 
   libraryDependencies ++= Seq(
-    "org.typelevel" %% "cats-core" % "1.4.0",
-    "org.typelevel" %% "cats-free" % "1.4.0",
-    "org.typelevel" %% "cats-testkit" % "1.4.0" % Test
+    "org.typelevel" %% "cats-core" % "2.1.1",
+    "org.typelevel" %% "cats-free" % "2.1.1",
+    "org.typelevel" %% "cats-testkit" % "2.1.1" % Test,
+    "org.typelevel" %% "cats-testkit-scalatest" % "1.0.1" % Test
   ),
 
   libraryDependencies ++= {
@@ -95,20 +96,11 @@ lazy val commonSettings = Def.settings(
     headerCreate.in(Compile).triggeredBy(compile.in(Compile)).value
   },
 
-  addCompilerPlugin("org.spire-math" % "kind-projector" % "0.9.8" cross CrossVersion.binary),
+  addCompilerPlugin("org.typelevel" % "kind-projector" % "0.11.0" cross CrossVersion.full),
 
   headerLicense := Some(HeaderLicense.ALv2("2018", "David Gregory and the Schemes project contributors")),
 
   unmanagedSources.in(Compile, headerCreate) ++= (sourceDirectory.in(Compile).value / "boilerplate" ** "*.template").get,
-
-  coursierVerbosity := {
-    val travisBuild = isTravisBuild.in(Global).value
-
-    if (travisBuild)
-      0
-    else
-      coursierVerbosity.value
-  }
 )
 
 lazy val publishSettings = Def.settings(
